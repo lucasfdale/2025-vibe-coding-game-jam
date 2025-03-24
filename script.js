@@ -123,29 +123,82 @@ function initCopyButton() {
 }
 
 function initShapes() {
-  const shapes = document.querySelectorAll('.elegant-shape');
+  // Set shapes container height to match document height
+  const shapesContainer = document.querySelector('.shapes-container');
+  if (shapesContainer) {
+    const docHeight = Math.max(
+      document.body.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.clientHeight,
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight
+    );
+    shapesContainer.style.height = `${docHeight}px`;
+  }
 
+  // Process all shapes
+  const shapes = document.querySelectorAll('.elegant-shape');
   shapes.forEach((shape, index) => {
+    // Determine if this is a hero shape
+    const isHero = shape.classList.toString().includes('shape-hero');
+
     // Set random rotation values for varied orientations
-    const randomRotateStart = Math.floor(Math.random() * 60) - 30; // Random value between -30 and 30
-    const randomRotateEnd =
-      randomRotateStart + (Math.random() > 0.5 ? 15 : -15); // Add or subtract 15 degrees
+    let randomRotateStart, randomRotateEnd;
+
+    if (isHero) {
+      // More pronounced rotation for hero shapes
+      const baseRotate = index % 2 === 0 ? 15 : -15;
+      randomRotateStart = baseRotate - 15;
+      randomRotateEnd = baseRotate;
+    } else {
+      // Subtle rotation for other shapes
+      randomRotateStart = Math.floor(Math.random() * 60) - 30;
+      randomRotateEnd = randomRotateStart + (Math.random() > 0.5 ? 15 : -15);
+    }
 
     shape.style.setProperty('--rotate-start', `${randomRotateStart}deg`);
     shape.style.setProperty('--rotate-end', `${randomRotateEnd}deg`);
 
-    // Add random animation delay variation
-    const currentDelay = parseFloat(
-      window.getComputedStyle(shape).animationDelay
-    );
-    const newDelay = currentDelay + (Math.random() * 0.5 - 0.25); // Add -0.25 to 0.25 seconds
-    shape.style.animationDelay = `${newDelay}s`;
+    // Add animation delay variation
+    let baseDelay =
+      parseFloat(window.getComputedStyle(shape).animationDelay) || 0;
+    if (isNaN(baseDelay)) baseDelay = 0;
 
-    // Add random float animation duration variation
+    // Ensure we don't override explicit delays set in CSS
+    if (baseDelay === 0) {
+      const newDelay = isHero ? 0.3 + index * 0.1 : 0.6 + index * 0.1;
+      shape.style.animationDelay = `${newDelay}s`;
+    }
+
+    // Add float animation variation
     const shapeInner = shape.querySelector('.shape-inner');
     if (shapeInner) {
-      const randomDuration = 10 + Math.random() * 4; // Between 10 and 14 seconds
+      // Vary the animation duration
+      const baseDuration = isHero ? 12 : 15;
+      const randomDuration = baseDuration + Math.random() * 3;
       shapeInner.style.animationDuration = `${randomDuration}s`;
+
+      // Add horizontal floating to some shapes
+      if (index % 3 === 1) {
+        shapeInner.style.animationName = 'shape-float-horizontal';
+      }
+    }
+
+    // Set initial opacity for animation
+    shape.style.opacity = '0';
+  });
+
+  // Update shapes container height on window resize
+  window.addEventListener('resize', () => {
+    if (shapesContainer) {
+      const newDocHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      shapesContainer.style.height = `${newDocHeight}px`;
     }
   });
 }
